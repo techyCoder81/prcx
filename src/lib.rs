@@ -3,6 +3,7 @@ use thiserror::Error;
 pub use prc::*;
 
 mod diff;
+mod patch;
 
 #[derive(Debug, Error)]
 pub enum Error {
@@ -57,9 +58,9 @@ impl GetPTag for ParamKind {
 
 type Result<T> = std::result::Result<T, Error>;
 
-// pub fn apply_patch(patch: &ParamStruct, source: &mut ParamStruct) -> Result<()> {
-
-// }
+pub fn apply_patch(patch: &ParamStruct, source: &mut ParamStruct) -> Result<()> {
+    patch::apply_patch_struct(patch, source)
+}
 
 pub fn generate_patch(source: &ParamStruct, result: &ParamStruct) -> Result<Option<ParamStruct>> {
     let param = diff::generate_diff_struct(source, result)?;
@@ -96,4 +97,30 @@ fn generate_added_entry_test() {
     let source = open("./tests/pictochat2.stdat").unwrap();
     let patch = generate_patch(&source, &result).unwrap().unwrap();
     save("./tests/pictochat2.stdatx", &patch).unwrap();
+}
+
+#[test]
+fn roundtrip_1() {
+    let result_data = std::fs::read("./tests/hdr_fighter_param.prc").unwrap();
+    let mut source = open("./tests/vanilla_fighter_param.prc").unwrap();
+    let mut cursor = std::io::Cursor::new(&result_data);
+    let result = read_stream(&mut cursor).unwrap();
+    let patch = generate_patch(&source, &result).unwrap().unwrap();
+    let mut output = std::io::Cursor::new(vec![]);
+    apply_patch(&patch, &mut source).unwrap();
+    write_stream(&mut output, &source).unwrap();
+    assert_eq!(result_data, output.into_inner());
+}
+
+#[test]
+fn roundtrip_2() {
+    let result_data = std::fs::read("./tests/stageparam_metroid_zebesdx_modded.stprm").unwrap();
+    let mut source = open("./tests/stageparam_metroid_zebesdx.stprm").unwrap();
+    let mut cursor = std::io::Cursor::new(&result_data);
+    let result = read_stream(&mut cursor).unwrap();
+    let patch = generate_patch(&source, &result).unwrap().unwrap();
+    let mut output = std::io::Cursor::new(vec![]);
+    apply_patch(&patch, &mut source).unwrap();
+    write_stream(&mut output, &source).unwrap();
+    assert_eq!(result_data, output.into_inner());
 }

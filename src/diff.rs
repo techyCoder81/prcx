@@ -1,6 +1,6 @@
 use std::collections::HashMap;
 
-use prc::{ParamKind, ParamStruct, ParamList, hash40::Hash40};
+use prc::{ParamKind, ParamStruct, ParamList, hash40::{Hash40, to_hash40}};
 use crate::GetPTag;
 
 use super::{
@@ -98,6 +98,8 @@ pub fn generate_diff_list(source: &ParamList, result: &ParamList) -> Result<Opti
         if let Some(src_param) = source.get(idx) {
             if let Some(diff) = generate_diff(src_param, param)? {
                 list.push(diff);
+            } else {
+                list.push(ParamKind::Hash(to_hash40("dummy")));
             }
         } else {
             list.push(param.clone());
