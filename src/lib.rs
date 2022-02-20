@@ -75,6 +75,11 @@ pub fn generate_patch(source: &ParamStruct, result: &ParamStruct) -> Result<Opti
     }
 }
 
+pub use prc::xml::{
+    read_xml,
+    write_xml
+};
+
 #[test]
 fn generate_patch_test() {
     let result = open("./tests/hdr_fighter_param.prc").unwrap();
