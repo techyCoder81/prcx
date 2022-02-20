@@ -94,19 +94,23 @@ pub fn generate_diff_list(source: &ParamList, result: &ParamList) -> Result<Opti
 
     let mut list = vec![];
 
+    let mut is_non_dummy = false;
+
     for (idx, param) in result.iter().enumerate() {
         if let Some(src_param) = source.get(idx) {
             if let Some(diff) = generate_diff(src_param, param)? {
                 list.push(diff);
+                is_non_dummy = true;
             } else {
                 list.push(ParamKind::Hash(to_hash40("dummy")));
             }
         } else {
             list.push(param.clone());
+            is_non_dummy = true;
         }
     }
 
-    if list.is_empty() {
+    if list.is_empty() || !is_non_dummy {
         Ok(None)
     } else {
         Ok(Some(ParamKind::List(ParamList(list))))
