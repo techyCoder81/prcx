@@ -85,18 +85,18 @@ pub fn generate_diff_struct(source: &ParamStruct, result: &ParamStruct) -> Resul
     }
 }
 
-pub fn generate_diff_list(source: &ParamList, result: &ParamList) -> Result<Option<ParamKind>> {
+pub fn generate_diff_list(source: &ParamList, modded: &ParamList) -> Result<Option<ParamKind>> {
     let ParamList(source) = source;
-    let ParamList(result) = result;
-    if result.len() < source.len() {
-        return Err(Error::ShortPatchList);
-    }
+    let ParamList(modded) = modded;
+    //if modded.len() < source.len() {
+    //    return Err(Error::ShortPatchList);
+    //}
 
     let mut list = vec![];
 
     let mut is_non_dummy = false;
 
-    for (idx, param) in result.iter().enumerate() {
+    for (idx, param) in modded.iter().enumerate() {
         if let Some(src_param) = source.get(idx) {
             if let Some(diff) = generate_diff(src_param, param)? {
                 list.push(diff);
@@ -113,6 +113,9 @@ pub fn generate_diff_list(source: &ParamList, result: &ParamList) -> Result<Opti
     if list.is_empty() || !is_non_dummy {
         Ok(None)
     } else {
+        for _ in modded.len()..source.len() {
+            list.push(ParamKind::Hash(to_hash40("dummy")));
+        }
         Ok(Some(ParamKind::List(ParamList(list))))
     }
 }
